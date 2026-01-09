@@ -1,0 +1,186 @@
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { govtSpendingData } from '../data/govtSpendingData';
+import { calculateRiskScore } from '../utils/riskLogic';
+import { parseCSV, normalizeUploadedData } from '../utils/csvParser';
+
+const DataContext = createContext();
+
+export const useData = () => {
+    const context = useContext(DataContext);
+    if (!context) {
+        throw new Error('useData must be used within DataProvider');
+    }
+    return context;
+};
+
+export const DataProvider = ({ children }) => {
+    // 1. Initialize State from LocalStorage (for Shared Persistence)
+    const [rawData, setRawData] = useState(() => {
+        const stored = localStorage.getItem('govtData_v1');
+        return stored ? JSON.parse(stored) : govtSpendingData;
+    });
+
+    const [riskThreshold, setRiskThreshold] = useState(() => {
+        const stored = localStorage.getItem('riskThreshold_v1');
+        return stored ? parseInt(stored) : 75;
+    });
+
+    const [auditFeedback, setAuditFeedback] = useState(() => {
+        const stored = localStorage.getItem('auditFeedback_v1');
+        return stored ? JSON.parse(stored) : {};
+    });
+
+    const [auditStatus, setAuditStatus] = useState(() => {
+        const stored = localStorage.getItem('auditStatus_v1');
+        return stored ? JSON.parse(stored) : {};
+    });
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    // 2. Persist State Changes to LocalStorage
+    useEffect(() => {
+        localStorage.setItem('govtData_v1', JSON.stringify(rawData));
+    }, [rawData]);
+
+    useEffect(() => {
+        localStorage.setItem('riskThreshold_v1', riskThreshold.toString());
+    }, [riskThreshold]);
+
+    useEffect(() => {
+        localStorage.setItem('auditFeedback_v1', JSON.stringify(auditFeedback));
+    }, [auditFeedback]);
+
+    useEffect(() => {
+        localStorage.setItem('auditStatus_v1', JSON.stringify(auditStatus));
+    }, [auditStatus]);
+
+
+    // Enrich data with risk scores
+    const enrichedData = useMemo(() => {
+        return rawData.map(record => {
+            const riskData = calculateRiskScore(record);
+            return {
+                ...record,
+                riskScore: riskData.score,
+                riskLevel: riskData.riskLevel,
+                riskReasons: riskData.reasons,
+                auditStatus: auditStatus[record.id] || 'Pending'
+            };
+        });
+    }, [rawData, auditStatus]);
+
+    const filteredHighRiskData = useMemo(() => {
+        return enrichedData.filter(record => {
+            // Include if score is high OR if explicitly marked as Valid (High Risk) by manual review
+            const isHighScore = record.riskScore >= riskThreshold;
+            const isMarkedValid = auditFeedback[record.id]?.status === 'valid';
+            const isMarkedSafe = auditFeedback[record.id]?.status === 'false_alarm';
+
+            // If marked safe, exclude even if score is high. 
+            // If marked valid, include even if score is low.
+            if (isMarkedSafe) return false;
+            if (isMarkedValid) return true;
+
+            return isHighScore;
+        });
+    }, [enrichedData, riskThreshold, auditFeedback]);
+
+
+    // Upload new data
+    const uploadData = async (file) => {
+        setIsLoading(true);
+        try {
+            const text = await file.text();
+            let newRecords = [];
+
+            if (file.name.endsWith('.json')) {
+                newRecords = JSON.parse(text);
+            } else if (file.name.endsWith('.csv')) {
+                newRecords = parseCSV(text);
+            } else {
+                throw new Error('Unsupported file format. Please upload CSV or JSON.');
+            }
+
+            const normalizedRecords = normalizeUploadedData(newRecords);
+
+            // Add unique IDs if missing to prevent duplicate key issues
+            const recordsWithIds = normalizedRecords.map(r => ({
+                ...r,
+                id: r.id || Math.random().toString(36).substr(2, 9),
+                auditStatus: 'Pending' // Default new records to pending
+            }));
+
+            setRawData(prev => [...prev, ...recordsWithIds]);
+
+            setIsLoading(false);
+            return { success: true, count: recordsWithIds.length };
+        } catch (error) {
+            setIsLoading(false);
+            return { success: false, error: error.message };
+        }
+    };
+
+    // Mark audit feedback
+    const markAsValid = (recordId) => {
+        const timestamp = new Date().toISOString();
+        setAuditFeedback(prev => ({ ...prev, [recordId]: { status: 'valid', timestamp } }));
+        setAuditStatus(prev => ({ ...prev, [recordId]: 'Reviewed' }));
+    };
+
+    const markAsFalseAlarm = (recordId) => {
+        const timestamp = new Date().toISOString();
+        setAuditFeedback(prev => ({ ...prev, [recordId]: { status: 'false_alarm', timestamp } }));
+        setAuditStatus(prev => ({ ...prev, [recordId]: 'Reviewed' }));
+    };
+
+    const markAsEscalated = (recordId) => {
+        setAuditStatus(prev => ({ ...prev, [recordId]: 'Escalated' }));
+    };
+
+    const resolveEscalation = (recordId, resolution, notes = '') => {
+        const timestamp = new Date().toISOString();
+        // resolution: 'approved' (Valid) or 'rejected' (False Alarm)
+        const status = resolution === 'approved' ? 'valid' : 'false_alarm';
+
+        setAuditFeedback(prev => ({
+            ...prev,
+            [recordId]: {
+                status: status,
+                timestamp,
+                resolvedBy: 'Admin',
+                adminNotes: notes
+            }
+        }));
+
+        // Update status to Resolved so it leaves the Escalated queue
+        setAuditStatus(prev => ({ ...prev, [recordId]: 'Resolved' }));
+    };
+
+    // New: Reset System (for demos)
+    const resetSystem = () => {
+        localStorage.removeItem('govtData_v1');
+        localStorage.removeItem('riskThreshold_v1');
+        localStorage.removeItem('auditFeedback_v1');
+        localStorage.removeItem('auditStatus_v1');
+        window.location.reload();
+    };
+
+    const value = {
+        enrichedData,
+        filteredHighRiskData,
+        riskThreshold,
+        setRiskThreshold,
+        auditFeedback,
+        auditStatus,
+        isLoading,
+        uploadData,
+        markAsValid,
+        markAsFalseAlarm,
+        markAsEscalated,
+        resolveEscalation,
+        resetSystem
+    };
+
+
+    return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+};

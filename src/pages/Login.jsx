@@ -74,8 +74,12 @@ const Login = () => {
                         </div>
                         {/* Logos */}
                         <div className="hidden md:flex items-center gap-4 text-xs text-gray-400">
-                            <div className="border border-gray-200 p-2 rounded bg-gray-50">G20 Summit</div>
-                            <div className="border border-gray-200 p-2 rounded bg-gray-50">Azadi Ka Amrit Mahotsav</div>
+                            <div className="border border-gray-200 p-2 rounded bg-gray-50">
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3KvIDJaZXcLi0Xf7WZICZPhxdrNwaSZtPtw&s" alt="G20 Summit" className="h-20 w-auto object-contain" />
+                            </div>
+                            <div className="border border-gray-200 p-2 rounded bg-gray-50">
+                                <img src="https://media.istockphoto.com/id/1607483797/vector/banner-or-header-designed-of-15th-august-happy-independence-day-of-india.jpg?s=612x612&w=0&k=20&c=tS_9ghoRvgcIEbSi-mn3qwDq1phL1dfObM8rI9BH6t8=" alt="Azadi" className="h-20 w-auto object-contain" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -90,7 +94,7 @@ const Login = () => {
                 {/* Left Side: Banner / Information */}
                 <div className="md:w-3/5 bg-gray-200 relative overflow-hidden hidden md:block">
                     <img
-                        src="https://www.metrorailnews.in/wp-content/uploads/2023/01/Delhi-Secretariat.jpg"
+                        src="https://cdnbbsr.s3waas.gov.in/s354ff9e9e3a2ec0300d4ce11261f5169f/uploads/2019/12/20191224100-1024x576.jpg"
                         alt="Delhi Secretariat"
                         className="absolute inset-0 w-full h-full object-cover"
                     />

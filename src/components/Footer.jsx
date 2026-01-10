@@ -47,14 +47,23 @@ const Footer = () => {
 
                 {/* Column 4 - Map Placeholder */}
                 <div>
-                    <h4 className="font-bold text-base mb-4 border-b border-gray-600 pb-2 inline-block">Location</h4>
-                    <div className="bg-gray-200 h-40 w-full rounded flex items-center justify-center text-gray-500 text-xs">
-                        [Map Integration Placeholder]
+                    <h4 className="font-bold text-base mb-4 border-b border-gray-600 pb-2 inline-block">
+                        Location
+                    </h4>
+
+                    <div className="bg-white h-40 w-full rounded overflow-hidden shadow">
+                        <iframe
+                            title="Directorate of Audit Location"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3502.1293348524982!2d77.2435339750054!3d28.62588575668352!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd4bd0555555%3A0x569fe49e2c88a5d9!2sDirectorate%20General%20of%20Audit!5e0!3m2!1sen!2sin!4v1768035341886"
+                            className="w-full h-full border-0"
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            allowFullScreen
+                        />
                     </div>
                 </div>
 
-            </div>
-
+    </div>
             {/* Bottom Footer Section - Copyright */}
             <div className="bg-[#050e1d] py-4 text-center text-xs text-gray-400 border-t border-gray-700">
                 <p>

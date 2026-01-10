@@ -185,6 +185,8 @@ export const DataProvider = ({ children }) => {
         enrichedData,
         riskThreshold,
         setRiskThreshold,
+        auditFeedback,
+        auditStatus,
         markAsValid,
         markAsFalseAlarm,
         markAsEscalated,

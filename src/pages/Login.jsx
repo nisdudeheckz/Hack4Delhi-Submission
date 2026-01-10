@@ -65,7 +65,7 @@ const Login = () => {
                             />
                             <div>
                                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
-                                    Public Expenditure Risk Monitor
+                                    National Expenditure Risk System (NERS)
                                 </h1>
                                 <p className="text-sm text-gray-600 font-semibold">
                                     Government of National Capital Territory of Delhi

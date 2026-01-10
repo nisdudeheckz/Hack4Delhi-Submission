@@ -9,8 +9,8 @@ const Reports = () => {
     const [activeFilter, setActiveFilter] = useState(null); // 'all', 'highRisk', 'reviewed', 'fundsRisk'
 
     const summary = useMemo(() => {
-        return generateAuditSummary(enrichedData, auditFeedback);
-    }, [enrichedData, auditFeedback]);
+        return generateAuditSummary(enrichedData, auditFeedback, riskThreshold);
+    }, [enrichedData, auditFeedback, riskThreshold]);
 
     const handleExportAll = () => {
         exportToCSV(enrichedData, 'full_dataset.csv');

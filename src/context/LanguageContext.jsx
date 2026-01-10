@@ -15,7 +15,7 @@ export const LanguageProvider = ({ children }) => {
         English: {
             // Header
             govtTitle: "Government of National Capital Territory of Delhi",
-            appTitle: "Public Expenditure Risk Monitor (AI)",
+            appTitle: "National Expenditure Risk System (NERS)",
             skipToMain: "Skip to Main Content",
             screenReader: "Screen Reader Access",
             logout: "Logout",

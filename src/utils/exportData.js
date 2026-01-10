@@ -125,7 +125,7 @@ export const exportAuditReport = (data, auditFeedback) => {
     URL.revokeObjectURL(url);
 };
 
-export const generateAuditSummary = (data, auditFeedback) => {
+export const generateAuditSummary = (data, auditFeedback, threshold = 75) => {
     const totalCases = data.length;
 
     // Helper to determine if a case is effectively High Risk
@@ -140,7 +140,7 @@ export const generateAuditSummary = (data, auditFeedback) => {
         if (feedback === 'valid') return true;
 
         // Otherwise, fallback to score threshold
-        return score > 75;
+        return score >= threshold;
     };
 
     const highRiskRecords = data.filter(isEffectiveHighRisk);

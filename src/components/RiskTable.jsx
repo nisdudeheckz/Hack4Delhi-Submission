@@ -1,96 +1,131 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { getRiskColor, getRiskBadgeColor } from '../utils/riskLogic';
 
-const RiskTable = ({ data, onRowClick }) => {
+const RiskTable = ({ data, onRowClick, riskThreshold = 75 }) => {
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
+    const sortedData = useMemo(() => {
+        let sortableItems = [...data];
+        if (sortConfig.key !== null) {
+            sortableItems.sort((a, b) => {
+                let aValue = a[sortConfig.key];
+                let bValue = b[sortConfig.key];
+
+                // Handle special cases
+                if (sortConfig.key === 'amountDisbursed' || sortConfig.key === 'riskScore' || sortConfig.key === 'id') {
+                    if (typeof aValue === 'string' && !isNaN(aValue)) aValue = Number(aValue);
+                    if (typeof bValue === 'string' && !isNaN(bValue)) bValue = Number(bValue);
+                }
+
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [data, sortConfig]);
+
+    const requestSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (name) => {
+        if (sortConfig.key !== name) {
+            return <i className="fas fa-sort text-gray-400 ml-1"></i>;
+        }
+        if (sortConfig.direction === 'ascending') {
+            return <i className="fas fa-sort-up text-blue-600 ml-1"></i>;
+        }
+        return <i className="fas fa-sort-down text-blue-600 ml-1"></i>;
+    };
+
+    const HeaderCell = ({ label, sortKey, className = "px-4 py-3 cursor-pointer select-none hover:bg-gray-200" }) => (
+        <th
+            className={className}
+            onClick={() => requestSort(sortKey)}
+            title={`Sort by ${label}`}
+        >
+            <div className="flex items-center">
+                {label} {getSortIcon(sortKey)}
+            </div>
+        </th>
+    );
+
     return (
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-8">
+        <div className="w-full mt-6 mb-8">
             <div className="bg-white shadow border border-gray-200 rounded overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full text-left text-sm text-gray-700">
+                        <thead className="bg-gray-100 text-gray-900 border-b border-gray-200 uppercase text-xs font-bold">
                             <tr>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    State
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    District
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Scheme
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Vendor
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Risk Score
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Anomaly
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Audit Status
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    Action
-                                </th>
+                                <HeaderCell label="ID" sortKey="id" />
+                                <HeaderCell label="Department / Scheme" sortKey="department" />
+                                <HeaderCell label="Vendor / Entity" sortKey="vendorName" />
+                                <HeaderCell label="Location" sortKey="district" />
+                                <HeaderCell label="Amount" sortKey="amountDisbursed" />
+                                <HeaderCell label="Reason" sortKey="flagReason" />
+                                <HeaderCell label="Score" sortKey="riskScore" />
+                                <HeaderCell label="Risk Level" sortKey="anomalyType" />
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {data.length === 0 ? (
+                        <tbody className="divide-y divide-gray-200 bg-white">
+                            {sortedData.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colSpan="8" className="px-6 py-8 text-center text-sm text-gray-500">
                                         No records match the selected filters
                                     </td>
                                 </tr>
                             ) : (
-                                data.map((record) => (
+                                sortedData.map((record) => (
                                     <tr
                                         key={record.id}
-                                        className={`${getRiskColor(record.riskScore)} border-l-4 cursor-pointer hover:bg-gray-100 transition-colors duration-100`}
+                                        className="hover:bg-gray-50 transition-colors cursor-pointer"
                                         onClick={() => onRowClick(record)}
-                                        title="Click to view detailed risk analysis"
                                     >
-                                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                                            {record.state}
+                                        <td className="px-4 py-4 font-medium text-blue-700">#{record.id}</td>
+                                        <td className="px-4 py-4">
+                                            <div className="font-semibold text-gray-900">{record.department}</div>
+                                            <div className="text-xs text-gray-500">{record.scheme}</div>
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">
-                                            {record.district}
+                                        <td className="px-4 py-4 text-gray-900">{record.vendorName}</td>
+                                        <td className="px-4 py-4">
+                                            <div className="text-gray-900">{record.district}</div>
+                                            <div className="text-xs text-gray-500">{record.state}</div>
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">
-                                            {record.scheme}
+                                        <td className="px-4 py-4 font-bold text-gray-900">
+                                            {formatCurrency(record.amountDisbursed)}
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">
-                                            {record.vendorName}
+                                        <td className="px-4 py-4 text-gray-600 w-1/4">
+                                            {record.flagReason}
                                         </td>
-                                        <td className="px-4 py-3 text-sm">
+                                        <td className="px-4 py-4 font-bold text-gray-800">
+                                            {record.riskScore}
+                                        </td>
+                                        <td className="px-4 py-4">
                                             <span
-                                                className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold ${getRiskBadgeColor(record.riskScore)}`}
-                                                title={`Risk Level: ${record.riskLevel}`}
-                                            >
-                                                {record.riskScore}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-700" title={record.flagReason}>
-                                            {record.anomalyType}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">
-                                            <span
-                                                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${record.auditStatus === 'Reviewed'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : record.auditStatus === 'Escalated'
-                                                            ? 'bg-red-100 text-red-800'
-                                                            : 'bg-gray-100 text-gray-800'
+                                                className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${record.riskScore >= riskThreshold ? 'bg-red-100 text-red-700' :
+                                                        record.riskScore >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                                                            'bg-green-100 text-green-700'
                                                     }`}
                                             >
-                                                {record.auditStatus}
+                                                {record.anomalyType || 'Low Risk'}
                                             </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">
-                                            {record.riskScore > 60 && (
-                                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                                                    ⚠ Review
-                                                </span>
-                                            )}
                                         </td>
                                     </tr>
                                 ))

@@ -18,6 +18,8 @@ import Departments from './pages/Departments';
 import NoticeBoard from './pages/NoticeBoard';
 import RTI from './pages/RTI';
 import ContactUs from './pages/ContactUs';
+import Search from './pages/Search';
+
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
                           <Route path="/notices" element={<NoticeBoard />} />
                           <Route path="/rti" element={<RTI />} />
                           <Route path="/contact" element={<ContactUs />} />
+                          <Route path="/search" element={<Search />} />
+
                         </Routes>
                       </main>
 

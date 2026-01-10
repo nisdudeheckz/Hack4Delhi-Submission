@@ -17,7 +17,9 @@ export const DataProvider = ({ children }) => {
     // 1. Initialize State from LocalStorage (for Shared Persistence)
     const [rawData, setRawData] = useState(() => {
         const stored = localStorage.getItem('govtData_v1');
-        return stored ? JSON.parse(stored) : govtSpendingData;
+        const parsed = stored ? JSON.parse(stored) : null;
+        // Auto-recovery: If stored data is empty or too small (legacy bug), restore defaults
+        return (parsed && parsed.length > 2) ? parsed : govtSpendingData;
     });
 
     const [riskThreshold, setRiskThreshold] = useState(() => {
@@ -157,28 +159,39 @@ export const DataProvider = ({ children }) => {
     };
 
     // New: Reset System (for demos)
-    const resetSystem = () => {
-        localStorage.removeItem('govtData_v1');
-        localStorage.removeItem('riskThreshold_v1');
-        localStorage.removeItem('auditFeedback_v1');
-        localStorage.removeItem('auditStatus_v1');
-        window.location.reload();
+
+    // Reset System Data
+    const resetData = () => {
+        if (window.confirm("Are you sure you want to reset all system data to factory defaults? This cannot be undone.")) {
+            localStorage.removeItem('govtData_v1');
+            localStorage.removeItem('riskThreshold_v1');
+            localStorage.removeItem('auditFeedback_v1');
+            localStorage.removeItem('auditStatus_v1');
+
+            setRawData(govtSpendingData);
+            setRiskThreshold(75);
+            setAuditFeedback({});
+            setAuditStatus({});
+
+            // Allow state to update
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
     };
 
     const value = {
+        rawData,
         enrichedData,
-        filteredHighRiskData,
         riskThreshold,
         setRiskThreshold,
-        auditFeedback,
-        auditStatus,
-        isLoading,
-        uploadData,
         markAsValid,
         markAsFalseAlarm,
         markAsEscalated,
         resolveEscalation,
-        resetSystem
+        uploadData,
+        resetData,
+        isLoading
     };
 
 

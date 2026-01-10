@@ -103,9 +103,9 @@ const Sidebar = ({ isAdmin, isAuditor }) => {
                 <h4 className="font-bold mb-4 border-b border-blue-400 pb-2">{t('importantLinks')}</h4>
                 <ul className="space-y-2 text-sm">
                     <li><button onClick={() => openRealLink('https://cag.gov.in')} className="hover:text-yellow-400 block py-1 border-b border-blue-800 text-left w-full"><i className="fas fa-angle-right mr-2"></i> CAG Audit Reports</button></li>
-                    <li><button onClick={() => openRealLink('https://finance.delhigovt.nic.in')} className="hover:text-yellow-400 block py-1 border-b border-blue-800 text-left w-full"><i className="fas fa-angle-right mr-2"></i> Delhi Budget 2025-26</button></li>
-                    <li><button onClick={() => openRealLink('https://www.gst.gov.in')} className="hover:text-yellow-400 block py-1 border-b border-blue-800 text-left w-full"><i className="fas fa-angle-right mr-2"></i> GST Portal</button></li>
-                    <li><button onClick={() => openRealLink('https://delhi.eproc.in/Product/fs/public/view/home')} className="hover:text-yellow-400 block py-1 border-b border-blue-800 text-left w-full"><i className="fas fa-angle-right mr-2"></i> e-Procurement</button></li>
+                    <li><button onClick={() => openRealLink('https://finance.delhi.gov.in/sites/default/files/Finance/generic_multiple_files/budget_at_a_glance_2025-26.pdf')}className="hover:text-yellow-400 block py-1 border-b border-blue-800 text-left w-full"><i className="fas fa-angle-right mr-2"></i> Delhi Budget 2025-26</button></li>
+                    <li><button onClick={() => openRealLink('https://selfservice.gstsystem.in')} className="hover:text-yellow-400 block py-1 border-b border-blue-800 text-left w-full"><i className="fas fa-angle-right mr-2"></i> GST Portal</button></li>
+                    <li><button onClick={() => openRealLink('https://eprocure.gov.in/cppp/')} className="hover:text-yellow-400 block py-1 border-b border-blue-800 text-left w-full"><i className="fas fa-angle-right mr-2"></i> e-Procurement</button></li>
                 </ul>
             </div>
 

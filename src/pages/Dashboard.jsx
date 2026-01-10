@@ -13,15 +13,17 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const Dashboard = () => {
-    const { enrichedData, riskThreshold, isLoading } = useData();
+    const { enrichedData, riskThreshold, isLoading, resetData } = useData();
     const { user } = useAuth();
     const { t } = useLanguage();
 
     const isAuditor = user?.role === 'auditor';
+    const isAdvisor = user?.role === 'senior_advisor';
     const isAdmin = user?.role === 'admin';
 
     // Local state for UI
     const [selectedRecord, setSelectedRecord] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({
         state: 'All States',
         department: 'All Departments',
@@ -39,13 +41,30 @@ const Dashboard = () => {
             const matchesScheme = filters.scheme === 'All Schemes' || item.scheme === filters.scheme;
 
             let matchesRisk = true;
-            if (filters.riskLevel !== 'All Risk Levels') {
-                matchesRisk = item.riskLevel === filters.riskLevel;
+            if (filters.riskLevel === 'High') {
+                matchesRisk = item.riskScore >= riskThreshold;
+            } else if (filters.riskLevel === 'Medium') {
+                matchesRisk = item.riskScore >= 50 && item.riskScore < riskThreshold;
+            } else if (filters.riskLevel === 'Low') {
+                matchesRisk = item.riskScore < 50;
             }
 
-            return matchesState && matchesDept && matchesScheme && matchesRisk;
+            let matchesSearch = true;
+            if (searchQuery) {
+                const lowerQuery = searchQuery.toLowerCase();
+                matchesSearch =
+                    item.id.toString().includes(lowerQuery) ||
+                    item.vendorName.toLowerCase().includes(lowerQuery) ||
+                    item.department.toLowerCase().includes(lowerQuery) ||
+                    item.scheme.toLowerCase().includes(lowerQuery) ||
+                    item.flagReason.toLowerCase().includes(lowerQuery) ||
+                    item.state.toLowerCase().includes(lowerQuery) ||
+                    item.district.toLowerCase().includes(lowerQuery);
+            }
+
+            return matchesState && matchesDept && matchesScheme && matchesRisk && matchesSearch;
         });
-    }, [enrichedData, filters]);
+    }, [enrichedData, filters, riskThreshold, searchQuery]);
 
 
     if (isLoading) {
@@ -57,7 +76,7 @@ const Dashboard = () => {
             {/* Hero Section with Ticker */}
             <Hero />
 
-            <main className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
+            <main className="w-full px-4 sm:px-8 py-8">
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
@@ -67,31 +86,15 @@ const Dashboard = () => {
                         {/* 1. Summary Cards (New Blue Design) */}
                         <SummaryCards data={filteredData} />
 
-                        {/* 2. Controls Section */}
-                        <div className="bg-white p-6 rounded shadow-sm border-t-4 border-[#0b3c6f]">
-                            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                                <h2 className="text-xl font-bold text-[#0b3c6f] uppercase border-b-2 border-yellow-400 pb-1">
-                                    {isAdmin ? t('systemControl') : t('auditFilters')}
-                                </h2>
-                                <SearchBar />
-                            </div>
-                            <Filters data={enrichedData} filters={filters} setFilters={setFilters} />
+                        {/* 2. Controls Section - Moved below */}
 
-                            {/* ADMIN ONLY: Risk Threshold Control */}
-                            {isAdmin && (
-                                <div className="mt-6 pt-6 border-t border-gray-200">
-                                    <RiskThresholdControl />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 3. Upload Section - ADMIN ONLY */}
-                        {isAdmin && (
+                        {/* 3. Upload Section & Escalations */}
+                        {(isAdmin || isAdvisor) && (
                             <div className="space-y-8">
-                                {/* Escalations Review Queue */}
+                                {/* Escalations Review Queue - Visible to Admin & Advisor */}
                                 <div className="bg-red-50 p-6 rounded shadow-sm border-l-4 border-red-600">
                                     <h3 className="text-lg font-bold text-red-800 mb-4 flex items-center">
-                                        <i className="fas fa-exclamation-triangle mr-2"></i> Escalations Pending Review
+                                        <i className="fas fa-exclamation-triangle mr-2"></i> {isAdvisor ? 'Escalations Pending Re-Audit' : 'Escalations Overview'}
                                     </h3>
                                     {enrichedData.filter(d => d.auditStatus === 'Escalated').length === 0 ? (
                                         <p className="text-gray-600 italic">No cases currently escalated for review.</p>
@@ -99,17 +102,30 @@ const Dashboard = () => {
                                         <RiskTable
                                             data={enrichedData.filter(d => d.auditStatus === 'Escalated')}
                                             onRowClick={setSelectedRecord}
+                                            riskThreshold={riskThreshold}
                                         />
                                     )}
                                 </div>
 
-                                <div className="bg-white p-6 rounded shadow-sm border-t-4 border-[#0b3c6f]">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="font-bold text-[#0b3c6f]"><i className="fas fa-cloud-upload-alt mr-2"></i> {t('ingestData')}</h3>
-                                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">{t('adminPrivilege')}</span>
+                                {/* Upload - Admin Only */}
+                                {isAdmin && (
+                                    <div className="bg-white p-6 rounded shadow-sm border-t-4 border-[#0b3c6f]">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="font-bold text-[#0b3c6f]"><i className="fas fa-cloud-upload-alt mr-2"></i> {t('ingestData')}</h3>
+                                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">{t('adminPrivilege')}</span>
+                                        </div>
+                                        <DataUpload />
+
+                                        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                                            <button
+                                                onClick={resetData}
+                                                className="text-xs text-red-600 hover:text-red-800 underline flex items-center"
+                                            >
+                                                <i className="fas fa-trash-alt mr-1"></i> Reset System Data
+                                            </button>
+                                        </div>
                                     </div>
-                                    <DataUpload />
-                                </div>
+                                )}
                             </div>
                         )}
 
@@ -129,21 +145,42 @@ const Dashboard = () => {
                             </div>
                         )}
 
+                        {/* 2. Controls Section (Moved Here) */}
+                        <div className="bg-white p-6 rounded shadow-sm border-t-4 border-[#0b3c6f] mb-8">
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                                <h2 className="text-xl font-bold text-[#0b3c6f] uppercase border-b-2 border-yellow-400 pb-1">
+                                    {isAdmin ? t('systemControl') : t('auditFilters')}
+                                </h2>
+                                <SearchBar onSearch={setSearchQuery} />
+                            </div>
+                            <Filters data={enrichedData} filters={filters} setFilters={setFilters} />
+
+                            {/* ADMIN ONLY: Risk Threshold Control */}
+                            {isAdmin && (
+                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                    <RiskThresholdControl />
+                                </div>
+                            )}
+                        </div>
+
                         {/* 4. Main Data Table */}
                         <div id="risk-table-section" className="bg-white rounded shadow-sm overflow-hidden border-t-4 border-[#0b3c6f]">
                             <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                                {/* Dynamic Header based on Role */}
                                 <h3 className="font-bold text-[#0b3c6f]">
-                                    <i className="fas fa-list mr-2"></i> {isAuditor ? 'My Assigned Cases' : 'Global Transaction Monitor'}
+                                    <i className="fas fa-list mr-2"></i>
+                                    {isAuditor ? 'My Assigned Cases' : isAdvisor ? 'All Transactions (Read Only)' : 'Global Transaction Monitor'}
                                 </h3>
                                 <span className="text-xs text-gray-500">
-                                    Threshold: {riskThreshold} | Role: <span className="uppercase font-bold">{user?.role}</span>
+                                    Threshold: {riskThreshold} | Role: <span className="uppercase font-bold">{user?.role === 'senior_advisor' ? 'Sr. Advisor' : user?.role}</span>
                                 </span>
                             </div>
 
                             {/* Logic: Admins see all filtered data. Auditors see ONLY assigned (High Risk) data */}
                             <RiskTable
-                                data={isAuditor ? filteredData.filter(d => d.riskScore >= riskThreshold) : filteredData}
+                                data={isAuditor ? filteredData.filter(d => d.auditStatus !== 'Escalated') : filteredData}
                                 onRowClick={setSelectedRecord}
+                                riskThreshold={riskThreshold}
                             />
                         </div>
 

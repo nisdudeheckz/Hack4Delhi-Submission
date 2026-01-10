@@ -8,6 +8,14 @@ const Navbar = () => {
     const { language, toggleLanguage, t } = useLanguage();
     const navigate = useNavigate();
     const [fontSize, setFontSize] = useState(16); // Default 16px
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            setSearchQuery(''); // Optional: clear after search
+        }
+    };
 
     // Handle Logout
     const handleLogout = () => {
@@ -155,11 +163,17 @@ const Navbar = () => {
                             <div className="relative">
                                 <input
                                     type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleSearch}
                                     placeholder={t('searchPlaceholder')}
                                     className="pl-3 pr-8 py-1 rounded-full text-black text-sm w-48 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                    dir={language === 'Hindi' ? 'rtl' : 'ltr'} // Just an example, Hindi is LTR but keeping logic
+                                    dir={language === 'Hindi' ? 'rtl' : 'ltr'}
                                 />
-                                <button className="absolute right-0 top-0 bottom-0 px-2.5 bg-yellow-500 rounded-r-full text-[#004b8d] hover:bg-yellow-600 transition-colors">
+                                <button
+                                    onClick={() => handleSearch({ key: 'Enter' })}
+                                    className="absolute right-0 top-0 bottom-0 px-2.5 bg-yellow-500 rounded-r-full text-[#004b8d] hover:bg-yellow-600 transition-colors"
+                                >
                                     <i className="fas fa-search"></i>
                                 </button>
                             </div>

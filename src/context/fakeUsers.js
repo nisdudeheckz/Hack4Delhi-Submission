@@ -23,5 +23,10 @@ export const fakeUsers = [
         email: "saket@gov.in",
         password: "saket123",
         role: "admin"
+    },
+    {
+        email: "advisor@gov.in",
+        password: "advisor123",
+        role: "senior_advisor"
     }
 ];

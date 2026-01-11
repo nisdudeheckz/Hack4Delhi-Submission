@@ -2,8 +2,8 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import io
-import math
 import uuid
+from datetime import timedelta
 
 app = FastAPI()
 
@@ -14,96 +14,101 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def compute_risk(record):
-    score = 0
-    reasons = []
-
-    if record["avgHistoricalAmount"] > 0:
-        ratio = record["amountDisbursed"] / record["avgHistoricalAmount"]
-        if ratio >= 3:
-            score += 40
-            reasons.append(f"Amount is {round(ratio,1)}x historical average")
-        elif ratio >= 2.5:
-            score += 30
-            reasons.append(f"Amount is {round(ratio,1)}x historical average")
-        elif ratio >= 2:
-            score += 20
-            reasons.append(f"Amount is {round(ratio,1)}x historical average")
-
-    if record["transactionFrequency"] >= 20:
-        score += 20
-        reasons.append("Very high transaction frequency")
-    elif record["transactionFrequency"] >= 15:
-        score += 10
-        reasons.append("Elevated transaction frequency")
-
-    if record["beneficiaryCount"] > 0:
-        per_beneficiary = record["amountDisbursed"] / record["beneficiaryCount"]
-        if per_beneficiary >= 5000:
-            score += 15
-            reasons.append("High per-beneficiary payout")
-
-    if record["duplicateIdentity"]:
-        score += 30
-        reasons.append("Same beneficiary ID across multiple states or departments")
-
-    score = min(100, score)
-
-    if score > 75:
-        level = "High"
-    elif score > 50:
-        level = "Medium"
-    else:
-        level = "Low"
-
-    if not reasons:
-        reasons.append("Standard operational parameters")
-
-    return score, level, reasons
-
-
 @app.post("/api/upload")
 async def upload(file: UploadFile = File(...)):
     content = await file.read()
     df = pd.read_csv(io.StringIO(content.decode("utf-8")))
 
+    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+
+    id_states = {}
+    id_departments = {}
+    vendor_count = {}
+    date_map = {}
+
+    for _, row in df.iterrows():
+        rid = str(row["ID"])
+        state = str(row["State"])
+        dept = str(row["Department"])
+        vendor = str(row["Vendor"])
+        date = row["Date"]
+
+        id_states.setdefault(rid, set()).add(state)
+        id_departments.setdefault(rid, set()).add(dept)
+        vendor_count[vendor] = vendor_count.get(vendor, 0) + 1
+
+        if pd.notna(date):
+            date_map.setdefault(rid, []).append(date)
+
     records = []
-    identity_map = {}
 
     for _, row in df.iterrows():
-        identity = str(row.get("beneficiary_id", ""))
-        state = str(row.get("state", ""))
-        dept = str(row.get("department", ""))
+        reasons = []
+        score = 0
 
-        if identity:
-            identity_map.setdefault(identity, set()).add((state, dept))
+        rid = str(row["ID"])
+        amount = float(row["Amount"]) if not pd.isna(row["Amount"]) else 0
+        issue = str(row["Issue"]) if not pd.isna(row["Issue"]) else ""
 
-    for _, row in df.iterrows():
-        identity = str(row.get("beneficiary_id", ""))
-        duplicate_identity = False
+        if amount >= 50_00_000:
+            score += 30
+            reasons.append("Unusually high transaction amount (₹50L+)")
 
-        if identity and len(identity_map.get(identity, [])) > 2:
-            duplicate_identity = True
+        if len(id_states.get(rid, [])) > 1:
+            score += 20
+            reasons.append("Same ID appears across multiple states")
 
-        record = {
+        if len(id_departments.get(rid, [])) > 1:
+            score += 15
+            reasons.append("Same ID appears across multiple departments")
+
+        vendor = str(row["Vendor"])
+        if vendor_count.get(vendor, 0) > 3:
+            score += 20
+            reasons.append("Same vendor involved in multiple transactions")
+
+        if issue.strip() != "":
+            score += 15
+            reasons.append("Audit issue already reported in records")
+
+        dates = date_map.get(rid, [])
+        if len(dates) >= 2:
+            dates = sorted(dates)
+            for i in range(len(dates) - 1):
+                if (dates[i + 1] - dates[i]) <= timedelta(days=5):
+                    score += 15
+                    reasons.append("Multiple transactions within short time window")
+                    break
+
+        if len(reasons) >= 2:
+            score += 10
+            reasons.append("Multiple anomaly indicators detected")
+
+        score = min(score, 100)
+
+        if score > 75:
+            level = "High"
+        elif score > 45:
+            level = "Medium"
+        else:
+            level = "Low"
+
+        if not reasons:
+            reasons.append("No significant anomaly detected")
+
+        records.append({
             "id": str(uuid.uuid4()),
-            "scheme": str(row.get("scheme", "N/A")),
-            "department": str(row.get("department", "N/A")),
-            "vendorName": str(row.get("vendor", "N/A")),
-            "amountDisbursed": float(row.get("amount", 0)),
-            "avgHistoricalAmount": float(row.get("historical_avg", 0)),
-            "transactionFrequency": int(row.get("txn_count", 0)),
-            "beneficiaryCount": int(row.get("beneficiary_count", 0)),
-            "duplicateIdentity": duplicate_identity
-        }
-
-        score, level, reasons = compute_risk(record)
-
-        record["riskScore"] = score
-        record["riskLevel"] = level
-        record["riskReasons"] = reasons
-        record["auditStatus"] = "Pending"
-
-        records.append(record)
+            "scheme": str(row["Scheme"]),
+            "department": str(row["Department"]),
+            "vendorName": str(row["Vendor"]),
+            "amountDisbursed": amount,
+            "avgHistoricalAmount": amount,
+            "transactionFrequency": 1,
+            "beneficiaryCount": 1,
+            "riskScore": score,
+            "riskLevel": level,
+            "riskReasons": reasons,
+            "auditStatus": "Pending"
+        })
 
     return records

@@ -90,35 +90,29 @@ export const DataProvider = ({ children }) => {
 
     // Upload new data
     const uploadData = async (file) => {
-  setIsLoading(true);
+  setIsLoading(true)
 
   try {
-    const formData = new FormData();
-    formData.append("file", file);
+    const formData = new FormData()
+    formData.append("file", file)
 
-    const response = await fetch("/api/upload", {
+    const res = await fetch("/api/upload", {
       method: "POST",
       body: formData
-    });
+    })
 
-    const data = await response.json();
+    const records = await res.json()
 
-    setRawData(prev => [...prev, ...data]);
-    setIsLoading(false);
+    setRawData(prev => [...prev, ...records])
+    setIsLoading(false)
 
-    return {
-      success: true,
-      count: data.length
-    };
-  } catch (error) {
-    setIsLoading(false);
-
-    return {
-      success: false,
-      error: "Upload failed"
-    };
+    return { success: true, count: records.length }
+  } catch (e) {
+    setIsLoading(false)
+    return { success: false, error: "Upload failed" }
   }
-};
+}
+
 
             // Add unique IDs if missing to prevent duplicate key issues
             const recordsWithIds = normalizedRecords.map(r => ({

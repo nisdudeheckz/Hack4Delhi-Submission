@@ -82,6 +82,7 @@ const RiskTable = ({ data, onRowClick, riskThreshold = 75 }) => {
                                 <HeaderCell label="Reason" sortKey="flagReason" />
                                 <HeaderCell label="Score" sortKey="riskScore" />
                                 <HeaderCell label="Risk Level" sortKey="anomalyType" />
+                                <HeaderCell label="Reference" sortKey="sourceType" />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
@@ -120,12 +121,27 @@ const RiskTable = ({ data, onRowClick, riskThreshold = 75 }) => {
                                         <td className="px-4 py-4">
                                             <span
                                                 className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${record.riskScore >= riskThreshold ? 'bg-red-100 text-red-700' :
-                                                        record.riskScore >= 50 ? 'bg-yellow-100 text-yellow-700' :
-                                                            'bg-green-100 text-green-700'
+                                                    record.riskScore >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                                                        'bg-green-100 text-green-700'
                                                     }`}
                                             >
                                                 {record.anomalyType || 'Low Risk'}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            {record.sourceUrl ? (
+                                                <a
+                                                    href={record.sourceUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {record.sourceType || 'Source'} <i className="fas fa-external-link-alt text-[10px]"></i>
+                                                </a>
+                                            ) : (
+                                                <span className="text-gray-400">N/A</span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

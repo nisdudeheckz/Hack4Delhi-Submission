@@ -158,7 +158,46 @@ export const DataProvider = ({ children }) => {
         setAuditStatus(prev => ({ ...prev, [recordId]: 'Resolved' }));
     };
 
-    // New: Reset System (for demos)
+    // AI Scan State
+    const [aiScanResults, setAiScanResults] = useState([]);
+
+    // AI Scan Function
+    const performAIScan = () => {
+        return new Promise((resolve) => {
+            // Simulate network delay for "Scanning" effect
+            setTimeout(() => {
+                import('../data/aiFoundData').then(module => {
+                    const newFindings = module.aiFoundData;
+                    // Filter out already imported IDs to avoid duplicates
+                    const uniqueFindings = newFindings.filter(f => !rawData.some(r => r.id === f.id));
+                    setAiScanResults(uniqueFindings);
+                    resolve(uniqueFindings);
+                });
+            }, 2500); // 2.5s delay for realism
+        });
+    };
+
+    // Import AI Findings to Main Data
+    const importAiFindings = (findingsToImport) => {
+        const timestamp = new Date().toISOString();
+        const findingsArray = Array.isArray(findingsToImport) ? findingsToImport : [findingsToImport];
+
+        const recordsWithStatus = findingsArray.map(r => ({
+            ...r,
+            isAiDiscovered: true,
+            importedAt: timestamp,
+            auditStatus: 'Pending'
+        }));
+
+        setRawData(prev => [...prev, ...recordsWithStatus]);
+
+        // Remove only the imported items from the temporary "Found" state
+        const importedIds = new Set(findingsArray.map(f => f.id));
+        setAiScanResults(prev => prev.filter(f => !importedIds.has(f.id)));
+    };
+
+    // New: Reset System (for demos)  
+
 
     // Reset System Data
     const resetData = () => {
@@ -193,6 +232,9 @@ export const DataProvider = ({ children }) => {
         resolveEscalation,
         uploadData,
         resetData,
+        aiScanResults,
+        performAIScan,
+        importAiFindings,
         isLoading
     };
 

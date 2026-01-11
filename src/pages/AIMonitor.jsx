@@ -3,8 +3,10 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { upcomingAudits, predictiveRiskAreas, auditCalendarSummary } from '../data/upcomingAudits';
+import pragatiIcon from '../assets/pragati-ai-icon.png';
 
-const AIMonitor = () => {
+
+function AIMonitor() {
     const { performAIScan, aiScanResults, importAiFindings } = useData();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -20,6 +22,7 @@ const AIMonitor = () => {
     });
 
     const YEARS = Array.from({ length: 17 }, (_, i) => (2010 + i).toString()); // 2010-2026
+
 
     // Dynamic filters based on actual scan results
     const availableSources = useMemo(() => {
@@ -150,7 +153,6 @@ const AIMonitor = () => {
     // Or simpler: We just assume `performAIScan` brings data, and we filter it LOCALLY before rendering?
     // `aiScanResults` is from context.
     // Let's use a local variable for rendering.
-
     // Correction: `performAIScan` sets the global state.
     // To make this work cleanly without changing Context too much, let's just filter the *view* of `aiScanResults`.
     const displayedResults = aiScanResults.filter(item => {
@@ -215,32 +217,36 @@ const AIMonitor = () => {
             if (inputLower.includes('hello') || inputLower.includes('hi') || inputLower.includes('hey') || inputLower.includes('नमस्ते')) {
                 response = "👋 नमस्ते! I'm PRAGATI-AI, ready to assist with audit intelligence. Type 'help' or 'commands' to see what I can do!";
             }
+
             // Commands List
             else if (inputLower.includes('commands') || inputLower.includes('command list')) {
                 response = `📜 **Complete Command List:**\n\n**General:**\n• \`help\`, \`features\` - Show capabilities\n• \`hi\`, \`hello\`, \`नमस्ते\` - Greet me\n• \`commands\` - This list\n\n**Data Analysis:**\n• \`upcoming audits\` - View 2026-2027 schedule\n• \`risk predictions\` - Future risk areas\n• \`history\`, \`archive\` - Historical data info\n\n**State Queries:**\n• \`bihar\`, \`delhi\` - State-specific insights\n\n**Technical:**\n• \`risk\`, \`score\` - Risk methodology\n• \`source\`, \`cag\` - Data sources\n• \`export\`, \`download\` - Export guide\n\nType any command to try it!`;
             }
+
             // Help / Features
             else if (inputLower.includes('help') || inputLower.includes('features') || inputLower.includes('what can you do')) {
                 response = `🎯 **My Capabilities:**\n\n1️⃣ **Historical Analysis** - Scan 16 years (2010-2026) of audit data\n2️⃣ **Smart Filtering** - Filter by Year, State, Department, Source\n3️⃣ **Risk Explanation** - Click 🤖 on any row for detailed analysis\n4️⃣ **Future Audits** - Type "upcoming audits" to see scheduled audits\n5️⃣ **Predictive Analytics** - Type "risk predictions" for future risk areas\n6️⃣ **Data Export** - Download findings as CSV/Excel\n\n💡 **Quick Commands:**\n• "upcoming audits" - View scheduled audits for 2026-2027\n• "risk predictions" - See high-risk areas\n• "scan" - Start a new audit scan\n• "explain [case ID]" - Get detailed analysis`;
             }
+
             // Upcoming Audits
             else if (inputLower.includes('upcoming') || inputLower.includes('future audit') || inputLower.includes('scheduled')) {
-                const upcomingList = upcomingAudits.slice(0, 5).map(audit =>
-                    `📅 **${audit.id}** - ${audit.scheduledDate}\n   ${audit.scheme} (${audit.state})\n   Priority: ${audit.priority} | Risk: ${audit.predictedRiskScore}/100`
+                const upcomingList = upcomingAudits.slice(0, 5).map(audit => `📅 **${audit.id}** - ${audit.scheduledDate}\n   ${audit.scheme} (${audit.state})\n   Priority: ${audit.priority} | Risk: ${audit.predictedRiskScore}/100`
                 ).join('\n\n');
                 response = `📊 **Upcoming Scheduled Audits (Next 5):**\n\n${upcomingList}\n\n**Summary:**\n• Total Scheduled: ${auditCalendarSummary.totalScheduled}\n• Critical Priority: ${auditCalendarSummary.byPriority.critical}\n• High Priority: ${auditCalendarSummary.byPriority.high}\n• Budget Under Review: ₹${(auditCalendarSummary.totalBudgetUnderReview / 1000000000).toFixed(1)}B`;
             }
+
             // Risk Predictions
             else if (inputLower.includes('risk prediction') || inputLower.includes('predictive') || inputLower.includes('future risk')) {
-                const riskList = predictiveRiskAreas.map(area =>
-                    `⚠️ **${area.category}** - ${area.riskLevel} Risk\n   Issues: ${area.predictedIssues.join(', ')}\n   Actions: ${area.recommendedActions[0]}`
+                const riskList = predictiveRiskAreas.map(area => `⚠️ **${area.category}** - ${area.riskLevel} Risk\n   Issues: ${area.predictedIssues.join(', ')}\n   Actions: ${area.recommendedActions[0]}`
                 ).join('\n\n');
                 response = `🔮 **Predictive Risk Analytics:**\n\n${riskList}\n\n💡 These predictions are based on historical patterns and current trends.`;
             }
+
             // Historical queries
             else if (inputLower.includes('history') || inputLower.includes('2010') || inputLower.includes('archive')) {
                 response = "📚 I have full access to archives dating back to 2010 (16 years). You can filter by any specific year using the dropdown filters above.";
             }
+
             // State-specific queries
             else if (inputLower.includes('bihar')) {
                 response = "📍 Bihar often shows delays in Utilisation Certificates. My historical data confirms this trend across multiple years, particularly in MGNREGA and rural development schemes.";
@@ -248,14 +254,17 @@ const AIMonitor = () => {
             else if (inputLower.includes('delhi')) {
                 response = "📍 Delhi has shown improved compliance in recent years, though infrastructure projects still require close monitoring for cost overruns.";
             }
+
             // Risk scoring
             else if (inputLower.includes('risk') || inputLower.includes('score')) {
                 response = "📊 I calculate risk scores (0-100) based on 6 parameters aligned with CAG standards:\n• Amount vs Historical Average\n• Transaction Frequency\n• Vendor Concentration\n• Beneficiary Count\n• Anomaly Type\n• Source Reliability\n\nScores above 75 are flagged as high-risk.";
             }
+
             // Data sources
             else if (inputLower.includes('source') || inputLower.includes('cag') || inputLower.includes('data from')) {
                 response = "📂 My data sources include:\n• CAG Reports (40%)\n• Ministry Audits (30%)\n• RTI Disclosures (20%)\n• Investigative Media (10%)\n\nAll sources are cross-verified for accuracy.";
             }
+
             // Export
             else if (inputLower.includes('export') || inputLower.includes('download')) {
                 response = "💾 You can export current findings using the CSV or Excel buttons above the results table. The export includes all filtered data with complete details.";
@@ -344,7 +353,7 @@ const AIMonitor = () => {
 
                             <div className="bg-indigo-50 p-4 rounded border-l-4 border-indigo-500 overflow-hidden">
                                 <h4 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
-                                    <img src="/pragati-ai-icon.png" alt="PRAGATI-AI" className="w-5 h-5" />
+                                    <img src={pragatiIcon} alt="PRAGATI-AI" className="w-5 h-5" />
                                     AI Analysis
                                 </h4>
                                 <div className="text-indigo-800 text-sm leading-relaxed break-words whitespace-pre-wrap max-h-40 overflow-y-auto pr-2 custom-scrollbar">
@@ -365,7 +374,7 @@ const AIMonitor = () => {
                                 Close
                             </button>
                             <button
-                                onClick={() => { handleImport(); setSelectedReport(null); }}
+                                onClick={() => { handleImport(); setSelectedReport(null); } }
                                 className="px-4 py-2 bg-[#0b3c6f] text-white rounded text-sm font-bold hover:bg-blue-800 shadow"
                             >
                                 Import to Audit Queue
@@ -383,7 +392,7 @@ const AIMonitor = () => {
                     </button>
                     <div>
                         <h1 className="text-xl font-bold flex items-center gap-2">
-                            <img src="/pragati-ai-icon.png" alt="PRAGATI-AI" className="w-8 h-8" />
+                            <img src={pragatiIcon} alt="PRAGATI-AI" className="w-8 h-8" />
                             AI Audit Assistant
                         </h1>
                     </div>
@@ -528,7 +537,7 @@ const AIMonitor = () => {
                                                     <div className="flex justify-center gap-2">
                                                         <button onClick={() => setSelectedReport(item)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded transition-colors" title="View"><i className="fas fa-eye"></i></button>
                                                         <button onClick={() => handleExplain(item)} className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-white rounded transition-colors" title="Analyze">
-                                                            <img src="/pragati-ai-icon.png" alt="Analyze" className="w-4 h-4 opacity-70 hover:opacity-100" />
+                                                            <img src={pragatiIcon} alt="Analyze" className="w-4 h-4 opacity-70 hover:opacity-100" />
                                                         </button>
                                                         <button onClick={() => handleImportSingle(item)} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-white rounded transition-colors" title="Import"><i className="fas fa-file-import"></i></button>
                                                     </div>
@@ -582,8 +591,7 @@ const AIMonitor = () => {
                                 <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`max-w-[90%] rounded p-3 text-xs leading-relaxed whitespace-pre-line ${msg.sender === 'user'
                                         ? 'bg-indigo-600 text-white rounded-br-none shadow-md'
-                                        : 'bg-gray-800 text-green-100 font-mono border-l-2 border-green-500 rounded-bl-none shadow-md'
-                                        }`}>
+                                        : 'bg-gray-800 text-green-100 font-mono border-l-2 border-green-500 rounded-bl-none shadow-md'}`}>
                                         {msg.text}
                                     </div>
                                 </div>
@@ -598,8 +606,7 @@ const AIMonitor = () => {
                                     className="w-full bg-[#1e2330] text-gray-200 border border-gray-600 rounded pl-3 pr-10 py-2.5 text-xs focus:outline-none focus:border-indigo-500 focus:bg-[#252a3a] transition-colors font-mono"
                                     placeholder="Command PRAGATI-AI..."
                                     value={chatInput}
-                                    onChange={(e) => setChatInput(e.target.value)}
-                                />
+                                    onChange={(e) => setChatInput(e.target.value)} />
                                 <button
                                     type="submit"
                                     className="absolute right-1.5 top-1.5 bottom-1.5 px-2 text-gray-400 hover:text-white transition-colors"
@@ -618,7 +625,7 @@ const AIMonitor = () => {
                         className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all z-50 flex items-center gap-2 animate-pulse"
                         title="Open PRAGATI-AI Chat"
                     >
-                        <img src="/pragati-ai-icon.png" alt="PRAGATI-AI" className="w-6 h-6" />
+                        <img src="src={pragatiIcon}" alt="PRAGATI-AI" className="w-6 h-6" />
                         <span className="font-bold text-sm">PRAGATI-AI</span>
                     </button>
                 )}
@@ -634,6 +641,6 @@ const AIMonitor = () => {
             </footer>
         </div>
     );
-};
+}
 
 export default AIMonitor;

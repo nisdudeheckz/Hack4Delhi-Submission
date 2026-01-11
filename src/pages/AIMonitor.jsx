@@ -374,7 +374,7 @@ function AIMonitor() {
                                 Close
                             </button>
                             <button
-                                onClick={() => { handleImport(); setSelectedReport(null); } }
+                                onClick={() => { handleImport(); setSelectedReport(null); }}
                                 className="px-4 py-2 bg-[#0b3c6f] text-white rounded text-sm font-bold hover:bg-blue-800 shadow"
                             >
                                 Import to Audit Queue
@@ -625,7 +625,7 @@ function AIMonitor() {
                         className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all z-50 flex items-center gap-2 animate-pulse"
                         title="Open PRAGATI-AI Chat"
                     >
-                        <img src="src={pragatiIcon}" alt="PRAGATI-AI" className="w-6 h-6" />
+                        <img src={pragatiIcon} alt="PRAGATI-AI" className="w-6 h-6" />
                         <span className="font-bold text-sm">PRAGATI-AI</span>
                     </button>
                 )}

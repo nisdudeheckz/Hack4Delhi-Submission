@@ -90,20 +90,35 @@ export const DataProvider = ({ children }) => {
 
     // Upload new data
     const uploadData = async (file) => {
-        setIsLoading(true);
-        try {
-            const text = await file.text();
-            let newRecords = [];
+  setIsLoading(true);
 
-            if (file.name.endsWith('.json')) {
-                newRecords = JSON.parse(text);
-            } else if (file.name.endsWith('.csv')) {
-                newRecords = parseCSV(text);
-            } else {
-                throw new Error('Unsupported file format. Please upload CSV or JSON.');
-            }
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
 
-            const normalizedRecords = normalizeUploadedData(newRecords);
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    setRawData(prev => [...prev, ...data]);
+    setIsLoading(false);
+
+    return {
+      success: true,
+      count: data.length
+    };
+  } catch (error) {
+    setIsLoading(false);
+
+    return {
+      success: false,
+      error: "Upload failed"
+    };
+  }
+};
 
             // Add unique IDs if missing to prevent duplicate key issues
             const recordsWithIds = normalizedRecords.map(r => ({

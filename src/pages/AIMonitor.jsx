@@ -3,7 +3,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { upcomingAudits, predictiveRiskAreas, auditCalendarSummary } from '../data/upcomingAudits';
-import pragatiIcon from '../assets/pragati-ai-icon.png';
+
 
 
 function AIMonitor() {
@@ -353,7 +353,7 @@ function AIMonitor() {
 
                             <div className="bg-indigo-50 p-4 rounded border-l-4 border-indigo-500 overflow-hidden">
                                 <h4 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
-                                    <img src={pragatiIcon} alt="PRAGATI-AI" className="w-5 h-5" />
+                                    <img src="https://cdn-icons-png.flaticon.com/256/14657/14657058.png" alt="PRAGATI-AI" className="w-5 h-5" />
                                     AI Analysis
                                 </h4>
                                 <div className="text-indigo-800 text-sm leading-relaxed break-words whitespace-pre-wrap max-h-40 overflow-y-auto pr-2 custom-scrollbar">
@@ -392,7 +392,7 @@ function AIMonitor() {
                     </button>
                     <div>
                         <h1 className="text-xl font-bold flex items-center gap-2">
-                            <img src={pragatiIcon} alt="PRAGATI-AI" className="w-8 h-8" />
+                            <img src="https://cdn-icons-png.flaticon.com/256/14657/14657058.png" alt="PRAGATI-AI" className="w-8 h-8" />
                             AI Audit Assistant
                         </h1>
                     </div>
@@ -537,7 +537,7 @@ function AIMonitor() {
                                                     <div className="flex justify-center gap-2">
                                                         <button onClick={() => setSelectedReport(item)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded transition-colors" title="View"><i className="fas fa-eye"></i></button>
                                                         <button onClick={() => handleExplain(item)} className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-white rounded transition-colors" title="Analyze">
-                                                            <img src={pragatiIcon} alt="Analyze" className="w-4 h-4 opacity-70 hover:opacity-100" />
+                                                            <img src="https://cdn-icons-png.flaticon.com/256/14657/14657058.png" alt="Analyze" className="w-4 h-4 opacity-70 hover:opacity-100" />
                                                         </button>
                                                         <button onClick={() => handleImportSingle(item)} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-white rounded transition-colors" title="Import"><i className="fas fa-file-import"></i></button>
                                                     </div>
@@ -625,7 +625,7 @@ function AIMonitor() {
                         className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all z-50 flex items-center gap-2 animate-pulse"
                         title="Open PRAGATI-AI Chat"
                     >
-                        <img src={pragatiIcon} alt="PRAGATI-AI" className="w-6 h-6" />
+                        <img src="https://cdn-icons-png.flaticon.com/256/14657/14657058.png" alt="PRAGATI-AI" className="w-6 h-6" />
                         <span className="font-bold text-sm">PRAGATI-AI</span>
                     </button>
                 )}

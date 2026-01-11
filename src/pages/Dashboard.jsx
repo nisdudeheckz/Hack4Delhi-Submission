@@ -11,7 +11,7 @@ import Sidebar from '../components/Sidebar'; // Imported new component
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import pragatiIcon from '../assets/pragati-ai-icon.png';
+
 
 const Dashboard = () => {
     const { enrichedData, riskThreshold, isLoading, resetData } = useData();
@@ -116,7 +116,7 @@ const Dashboard = () => {
                                 {isAdmin && (
                                     <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 rounded shadow-lg border border-gray-700 relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 p-4 opacity-40 group-hover:opacity-60 transition-opacity">
-                                            <img src={pragatiIcon} alt="PRAGATI-AI" className="w-40 h-40" />
+                                            <img src="https://cdn-icons-png.flaticon.com/256/14657/14657058.png" alt="PRAGATI-AI" className="w-40 h-40" />
                                         </div>
                                         <div className="relative z-10">
                                             <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">

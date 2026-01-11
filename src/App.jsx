@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -20,7 +20,6 @@ import ContactUs from './pages/ContactUs';
 import Search from './pages/Search';
 import AIMonitor from './pages/AIMonitor';
 
-
 const MainLayout = () => {
   const location = useLocation();
   const hideFooter = location.pathname.includes('/ai-monitor');
@@ -36,14 +35,12 @@ const MainLayout = () => {
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/reports" element={<Reports />} />
 
-          {/* New Routes */}
           <Route path="/departments" element={<Departments />} />
           <Route path="/notices" element={<NoticeBoard />} />
           <Route path="/rti" element={<RTI />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/search" element={<Search />} />
           <Route path="/ai-monitor" element={<AIMonitor />} />
-
         </Routes>
       </main>
 
@@ -54,28 +51,24 @@ const MainLayout = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <DataProvider>
-          <LanguageProvider>
-            <Routes>
+    <AuthProvider>
+      <DataProvider>
+        <LanguageProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-              <Route path="/login" element={<Login />} />
-
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout />
-                  </ProtectedRoute>
-                }
-              />
-
-            </Routes>
-          </LanguageProvider>
-        </DataProvider>
-      </AuthProvider>
-    </BrowserRouter>
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </LanguageProvider>
+      </DataProvider>
+    </AuthProvider>
   );
 }
 

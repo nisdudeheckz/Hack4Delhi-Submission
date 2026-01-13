@@ -71,36 +71,36 @@ export const DataProvider = ({ children }) => {
     })
   }, [enrichedData, riskThreshold, auditFeedback])
 
-  const uploadData = async (file) => {
-    setIsLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
+  const API_BASE = import.meta.env.VITE_API_BASE_URL
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      })
+const uploadData = async (file) => {
+  setIsLoading(true)
+  try {
+    const formData = new FormData()
+    formData.append("file", file)
 
-      if (!res.ok) throw new Error("Upload failed")
+    const res = await fetch(`${API_BASE}/api/upload`, {
+      method: "POST",
+      body: formData
+    })
 
-      const records = await res.json()
-
-      const recordsWithIds = records.map(r => ({
-        ...r,
-        id: r.id || Math.random().toString(36).slice(2),
-        auditStatus: "Pending"
-      }))
-
-      setRawData(prev => [...prev, ...recordsWithIds])
-      setIsLoading(false)
-
-      return { success: true, count: recordsWithIds.length }
-    } catch (e) {
-      setIsLoading(false)
-      return { success: false, error: e.message }
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(text || "Upload failed")
     }
+
+    const data = await res.json()
+    const rows = Array.isArray(data.records) ? data.records : []
+    setRawData(rows)
+
+    setIsLoading(false)
+    return { success: true, count: rows.length }
+  } catch (e) {
+    setIsLoading(false)
+    return { success: false, error: e.message || "Upload failed" }
   }
+}
+
 
   const markAsValid = (recordId) => {
     const timestamp = new Date().toISOString()
